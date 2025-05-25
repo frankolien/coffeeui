@@ -350,6 +350,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
 
 
 import 'package:flutter/material.dart';
+import 'package:coffeeui/model/product.dart';
 
 class HomePageScreen extends StatefulWidget {
   const HomePageScreen({super.key});
@@ -362,6 +363,39 @@ class _HomePageScreenState extends State<HomePageScreen> {
   int crossAxisCount(double screenWidth) {
     return screenWidth < 600 ? 2 : 4;
   }
+
+    List<Product> products = [
+    Product(
+      id: '1',
+      name: 'Flat White',
+      description: 'Espresso',
+      price: 2.50,
+      imageUrl: 'lib/images/third_coffee.png', // Update to your image path
+    ),
+    Product(
+      id: '2',
+      name: 'Cappuccino',
+      description: 'Steamed milk',
+      price: 3.00,
+      imageUrl: 'lib/images/4.png',
+    ),
+    Product(
+      id: '3',
+      name: 'Latte',
+      description: 'Ice/hot',
+      price: 3.50,
+      imageUrl: 'lib/images/second_coffee.png',
+    ),
+    Product(
+      id: '4',
+      name: 'Caffe Mocha',
+      description: 'Deep foam',
+      price: 4.00,
+      imageUrl: 'lib/images/5.png',
+    ),
+    
+  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -377,6 +411,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
               children: [
                 // Top Black Section
                 Container(
+                
                   color: Color(0xFF1A1A1A),
                   padding: EdgeInsets.fromLTRB(24, 48, 24, 24),
                   width: double.infinity,
@@ -514,7 +549,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                         .toList(),
                   ),
                 ),
-                SizedBox(height: 2),
+                //SizedBox(height: 2),
 
                 // Coffee Grid
                 Padding(
@@ -526,16 +561,79 @@ class _HomePageScreenState extends State<HomePageScreen> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     childAspectRatio: 3 / 4,
-                    children: List.generate(8, (index) {
-                      return Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Center(
-                          child: Text('Coffee Item ${index + 1}'),
-                        ),
-                      );
-                    }),
+                     children: List.generate(products.length, (index) {
+  final product = products[index];
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(12),
+    child: Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
+            child: Image.asset(
+              product.imageUrl,
+              width: double.infinity,
+              height: 120,
+              fit: BoxFit.cover,
+            ),
+          ),
+          SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(product.name,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          SizedBox(height: 5),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(product.description,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  )),
+          ),
+         Padding(
+           padding: const EdgeInsets.only(right: 6.0),
+           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+               Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                '\$${product.price.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 18,
+                fontWeight: FontWeight.bold
+              ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.brown,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.add, color: Colors.white),
+                onPressed: () {
+                  // Add to cart action
+                },
+              ),
+            ),
+            ],
+           ),
+         )
+        ],
+      ),
+    ),
+  );
+}),
+
                   ),
                 ),
               ],

@@ -61,7 +61,7 @@ class OnboardingScreen extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           // Add your navigation logic here
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) => HomePageScreen(),

@@ -349,6 +349,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
 
 
 
+import 'package:coffeeui/screens/detail_item_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:coffeeui/model/product.dart';
 
@@ -565,70 +566,81 @@ class _HomePageScreenState extends State<HomePageScreen> {
   final product = products[index];
   return ClipRRect(
     borderRadius: BorderRadius.circular(12),
-    child: Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
+    child: GestureDetector(
+       onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DetailItemScreen(product: product),
+      ),
+    );
+  },
+      
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child: Image.asset(
+                product.imageUrl,
+                width: double.infinity,
+                height: 120,
+                fit: BoxFit.cover,
+              ),
             ),
-            child: Image.asset(
-              product.imageUrl,
-              width: double.infinity,
-              height: 120,
-              fit: BoxFit.cover,
-            ),
-          ),
-          SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(product.name,
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(product.description,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  )),
-          ),
-         Padding(
-           padding: const EdgeInsets.only(right: 6.0),
-           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-               Padding(
+            SizedBox(height: 8),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                '\$${product.price.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 18,
-                fontWeight: FontWeight.bold
-              ),
-              ),
+              child: Text(product.name,
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.brown,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: IconButton(
-                icon: Icon(Icons.add, color: Colors.white),
-                onPressed: () {
-                  // Add to cart action
-                },
-              ),
+            SizedBox(height: 5),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(product.description,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    )),
             ),
-            ],
-           ),
-         )
-        ],
+           Padding(
+             padding: const EdgeInsets.only(right: 6.0),
+             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                 Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  '\$${product.price.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                  fontWeight: FontWeight.bold
+                ),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.brown,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.add, color: Colors.white),
+                  onPressed: () {
+                    // Add to cart action
+                  },
+                ),
+              ),
+              ],
+             ),
+           )
+          ],
+        ),
       ),
     ),
   );

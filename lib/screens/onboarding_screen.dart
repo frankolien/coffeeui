@@ -1,4 +1,5 @@
 import 'package:coffeeui/screens/home_page_screen.dart';
+import 'package:coffeeui/widget%20/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -7,27 +8,27 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Dark background color
+      backgroundColor: Colors.black, 
       body: Stack(
         children: [
-          // Background image
+         
           Positioned.fill(
             bottom: 200,
             child: Image.asset('lib/images/6.png'),
           ),
-          // Content layout
+          
           SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 mainAxisAlignment:
-                    MainAxisAlignment.end, // Push content to bottom
+                    MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Spacer to push content down
+                  
                   Spacer(flex: 3),
       
-                  // Main heading text
+                  
                   Text(
                     'Fall in Love with\nCoffee in Blissful\nDelight!',
                     textAlign: TextAlign.center,
@@ -53,23 +54,23 @@ class OnboardingScreen extends StatelessWidget {
       
                   SizedBox(height: 40),
       
-                  // Get Started button
+                  
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Add your navigation logic here
+                       
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => HomePageScreen(),
+                            builder: (context) => HomePage(),
                           ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(
                           0xFFD28B67,
-                        ), // Coffee/orange color from screenshot
+                        ), 
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -86,7 +87,7 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
       
-                  // Bottom spacing
+                  
                   SizedBox(height: 40),
                 ],
               ),

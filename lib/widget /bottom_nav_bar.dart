@@ -1,10 +1,11 @@
 import 'package:coffeeui/screens/detail_item_screen.dart';
 import 'package:coffeeui/screens/home_page_screen.dart';
 import 'package:coffeeui/screens/order_screen.dart';
+import 'package:coffeeui/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:coffeeui/model/product.dart';
 
-class BottomNavBar extends StatefulWidget {
+/*class BottomNavBar extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
 
@@ -67,4 +68,82 @@ class _BottomNavBarState extends State<BottomNavBar> {
       ],
     );
   }
+}*/
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
 }
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _getBodyWidget(), 
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 10,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey,
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: '',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _getBodyWidget() {
+    switch (_selectedIndex) {
+      case 0:
+        return HomePageScreen(
+          
+        ); // Your main content
+      case 1:
+        return DetailItemScreen(product: products[0]);
+      case 2:
+        return OrderScreen();
+      case 3:
+        return ProfileScreen();
+
+      default:
+        return HomePage();
+    }
+  }
+}
+
+

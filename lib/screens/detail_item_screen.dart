@@ -24,62 +24,10 @@ class _DetailItemScreenState extends State<DetailItemScreen> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      /*bottomNavigationBar: BottomNavBar(
-        currentIndex: 0, // Set the current index to 0 for Home
-        onTap: (index) {
-          // Handle navigation based on the tapped index
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (index == 1) {
-            //Navigator.pushReplacementNamed(context, '/favorites');
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DetailItemScreen(product: widget.product), // Navigate to DetailItemScreen
-              ),
-            );
-          } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/cart');
-          } else if (index == 3) {
-            Navigator.pushReplacementNamed(context, 'profile');
-          }
-        },
-      ),*/
-         /*bottomNavigationBar: BottomNavigationBar(
-              currentIndex: 1,
-
-              selectedItemColor: Colors.brown,
-              unselectedItemColor: Colors.grey,
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorites'),
-                BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-              ],
-            ),*/
-            bottomNavigationBar: BottomNavBar(
-        currentIndex: 1, // Set the current index to 1 for Favorites
-       onTap: (index) {
-        // Handle navigation based on the tapped index
-        if (index == 0) {
-          //Navigator.pushReplacementNamed(context, '/home');
-          Navigator.push(context, MaterialPageRoute(builder: (context) => HomePageScreen()));
-        } else if (index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailItemScreen(product: products[index]), // Navigate to OrderScreen
-            ),
-          );
-        } else if (index == 2) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen()));
-        } else if (index == 3) {
-          Navigator.pushReplacementNamed(context, 'profile');
-        }
-      }
-      ),
+            backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(widget.product.name),
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(Icons.favorite_border),
@@ -222,8 +170,8 @@ class _DetailItemScreenState extends State<DetailItemScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: SizedBox(
-                      width: screenWidth * 0.5, // Adjust width as needed
-                      height: screenHeight * 0.06, // Adjust height as needed
+                      width: screenWidth * 0.5, 
+                      height: screenHeight * 0.06, 
                       child: ElevatedButton(
                         onPressed: () {
                           // Add to cart action

@@ -60,7 +60,8 @@ class OnboardingScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        context.go('/home');
+                        // Navigate to login screen for authentication
+                        context.push('/login');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(

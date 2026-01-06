@@ -35,10 +35,22 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
     
     // Fetch locations
     final locationsAsync = ref.watch(locationListActiveProvider);
+    
+    // Debug logging
+    coffeeAsync.when(
+      data: (coffees) => print('Coffee loaded: ${coffees.length} items'),
+      loading: () => print('Loading coffee...'),
+      error: (error, stack) => print('Coffee error: $error'),
+    );
+    
+    locationsAsync.when(
+      data: (locations) => print('Locations loaded: ${locations.length} items'),
+      loading: () => print('⏳ Loading locations...'),
+      error: (error, stack) => print('Locations error: $error'),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        double screenHeight = constraints.maxHeight;
         double screenWidth = constraints.maxWidth;
         
         // Convert coffee types to products
@@ -67,7 +79,7 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                           color: Color(0xFF1A1A1A),
                           // padding: EdgeInsets.fromLTRB(24, 48, 24, 24),
                           width: double.infinity,
-                          height: screenHeight * 0.35,
+                          height: MediaQuery.of(context).size.height * 0.35,
                         ),
                       ),
           
@@ -106,21 +118,26 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                                       dropdownColor: Color(0xFF1A1A1A),
                                       items: [],
                                       onChanged: null,
+                                      hint: Text('Loading...', style: TextStyle(color: Colors.grey)),
                                     ),
-                                    error: (_, __) => DropdownButton<String>(
-                                      value: null,
-                                      icon: Icon(Icons.arrow_drop_down, color: Colors.white),
-                                      dropdownColor: Color(0xFF1A1A1A),
-                                      items: [],
-                                      onChanged: null,
-                                    ),
+                                    error: (error, stack) {
+                                      print('Locations error in UI: $error');
+                                      return DropdownButton<String>(
+                                        value: null,
+                                        icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+                                        dropdownColor: Color(0xFF1A1A1A),
+                                        items: [],
+                                        onChanged: null,
+                                        hint: Text('Error loading', style: TextStyle(color: Colors.red[300])),
+                                      );
+                                    },
                                   ),
                                   SizedBox(height: 20),
                                   Row(
                                     children: [
                                       Expanded(
                                         child: Container(
-                                          height: screenHeight * 0.05,
+                                          height: 50,
                                           decoration: BoxDecoration(color: Colors.grey[800], borderRadius: BorderRadius.circular(10)),
                                           child: TextField(
                                             onChanged: (value) {
@@ -231,7 +248,7 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                               physics: NeverScrollableScrollPhysics(),
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
-                              childAspectRatio: 3 / 4.5,
+                              childAspectRatio: screenWidth < 600 ? 0.65 : 0.75,
                               children: List.generate(products.length, (index) {
                                 final product = products[index];
                         return ClipRRect(
@@ -249,17 +266,45 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-                                    child: Image.asset(product.imageUrl, width: double.infinity, height: 120, fit: BoxFit.cover),
+                                    child: Image.asset(
+                                      product.imageUrl,
+                                      width: double.infinity,
+                                      height: screenWidth < 600 ? 100 : 140,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          height: screenWidth < 600 ? 100 : 140,
+                                          color: Colors.grey[300],
+                                          child: Icon(Icons.coffee, size: 40, color: Colors.grey[600]),
+                                        );
+                                      },
+                                    ),
                                   ),
                                   SizedBox(height: 8),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      product.name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: screenWidth < 600 ? 14 : 16,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                  SizedBox(height: 5),
+                                  SizedBox(height: 4),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: Text(product.description, style: TextStyle(color: Colors.grey[600])),
+                                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      product.description,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: screenWidth < 600 ? 12 : 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(right: 6.0),
@@ -270,7 +315,10 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                           child: Text(
                                             '\$${product.price.toStringAsFixed(2)}',
-                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                            style: TextStyle(
+                                              fontSize: screenWidth < 600 ? 16 : 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                         Container(
@@ -295,18 +343,53 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                       loading: () => Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      error: (error, stack) => Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: Text(
-                            'Error loading coffee: $error',
-                            style: TextStyle(color: Colors.red),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text(
+                                'Loading coffee...',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      error: (error, stack) {
+                        print('Coffee error in UI: $error');
+                        print('Stack: $stack');
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Error loading coffee',
+                                  style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  error.toString(),
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                  textAlign: TextAlign.center,
+                                ),
+                                SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Refresh
+                                    ref.invalidate(coffeeListFilteredProvider);
+                                  },
+                                  child: Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

@@ -6,12 +6,11 @@ import 'package:coffeeui/screens/detail_item_screen.dart';
 import 'package:coffeeui/screens/order_screen.dart';
 import 'package:coffeeui/screens/profile_screen.dart';
 import 'package:coffeeui/model/product.dart';
-import '../../presentation/providers/auth_provider.dart';
+import '../../presentation/screens/auth/login_screen.dart';
+import '../../presentation/screens/auth/register_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-
   return GoRouter(
     initialLocation: '/onboarding',
     redirect: (context, state) {
@@ -30,6 +29,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         name: 'onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) {
+          return const LoginScreen();
+        },
+      ),
+      GoRoute(
+        path: '/register',
+        name: 'register',
+        builder: (context, state) {
+          return const RegisterScreen();
+        },
       ),
       GoRoute(
         path: '/home',

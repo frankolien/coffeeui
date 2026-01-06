@@ -32,21 +32,30 @@ class RemoteDataSourceImpl implements RemoteDataSource {
   @override
   Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? headers}) async {
     try {
+      final url = '$baseUrl$endpoint';
+      print('🌐 Making GET request to: $url');
       final response = await client.get(
-        Uri.parse('$baseUrl$endpoint'),
+        Uri.parse(url),
         headers: headers ?? _getHeaders(),
       );
 
+      print('📡 Response status: ${response.statusCode}');
+      print('📄 Response body length: ${response.body.length}');
+
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
+        print('✅ Response decoded successfully');
         if (decoded is List) {
           return {'data': decoded};
         }
         return decoded as Map<String, dynamic>;
       } else {
+        print('❌ Error status: ${response.statusCode}');
+        print('❌ Error body: ${response.body}');
         throw ServerFailure('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
+      print('❌ Exception in get: $e');
       if (e is Failure) rethrow;
       throw NetworkFailure('Network error: $e');
     }

@@ -20,14 +20,19 @@ class LocationRepositoryImpl implements LocationRepository {
         endpoint += '?active=$activeOnly';
       }
 
+      print('🔍 Fetching locations from: $endpoint');
       final response = await remoteDataSource.get(endpoint);
+      print('📦 Locations response received: ${response.keys}');
       
       final List<dynamic> data = (response['data'] as List<dynamic>?) ?? 
           ((response is List) ? response as List<dynamic> : []);
+      print('📊 Location items: ${data.length}');
+      
       final locations = data
           .map((json) => LocationModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
+      print('✅ Locations parsed: ${locations.length}');
       return Success(locations);
     } on Failure catch (e) {
       return Error(e);

@@ -1,23 +1,44 @@
-import 'package:coffeeui/model/product.dart';
-import 'package:coffeeui/screens/detail_item_screen.dart';
-import 'package:coffeeui/screens/home_page_screen.dart';
-import 'package:coffeeui/widget%20/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../presentation/providers/order_provider.dart';
+import '../domain/entities/order_entity.dart';
 
-class OrderScreen extends StatefulWidget {
+class OrderScreen extends ConsumerStatefulWidget {
   const OrderScreen({super.key});
 
   @override
-  State<OrderScreen> createState() => _OrderScreenState();
+  ConsumerState<OrderScreen> createState() => _OrderScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> {
+class _OrderScreenState extends ConsumerState<OrderScreen> {
   String selectedSize = 'Deliver'; // Default selected size
   final List<String> sizes = ['Deliver', 'Pickup']; // List of sizes
+  
+  Color _getStatusColor(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return Colors.orange;
+      case OrderStatus.confirmed:
+        return Colors.blue;
+      case OrderStatus.preparing:
+        return Colors.purple;
+      case OrderStatus.ready:
+        return Colors.green;
+      case OrderStatus.completed:
+        return Colors.green.shade700;
+      case OrderStatus.cancelled:
+        return Colors.red;
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
+    
+    // Watch orders once
+    final ordersAsync = ref.watch(myOrdersProvider);
+    
     return Scaffold(
       appBar: AppBar(title: Text('Order'), backgroundColor: Colors.white),
       backgroundColor: Colors.white,
@@ -195,47 +216,74 @@ class _OrderScreenState extends State<OrderScreen> {
               endIndent: 16,
               color: Colors.grey[300],
             ),
-            ListView.builder(
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: AssetImage(products[index].imageUrl),
-                  ),
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        products[index].name,
+            // Display orders from API
+            ordersAsync.when(
+              data: (orders) {
+                if (orders.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text(
+                        'No orders yet',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.brown[100],
+                        child: Icon(Icons.coffee, color: Colors.brown),
+                      ),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.coffeeTypeName ?? 'Coffee',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Qty: ${order.quantity} • \$${order.totalPrice.toStringAsFixed(2)}',
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      trailing: Text(
+                        order.status.name.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 12,
+                          color: _getStatusColor(order.status),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        products[index].description,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.remove_circle_outline, color: Colors.brown),
-                      SizedBox(width: 8),
-                      Text(
-                        '1',
-                        style: TextStyle(fontSize: 16, color: Colors.brown),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.add_circle_outline, color: Colors.brown),
-                    ],
-                  ),
-                  //trailing: Text('\$${products[index].price.toStringAsFixed(2)}', style: TextStyle(fontSize: 16, color: Colors.brown)),
+                    );
+                  },
+                  itemCount: orders.length,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
                 );
               },
-              itemCount: 1,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              loading: () => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (error, stack) => Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Center(
+                  child: Text(
+                    'Error loading orders: $error',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
             ),
             SizedBox(height: 20),
             Padding(
@@ -281,21 +329,28 @@ class _OrderScreenState extends State<OrderScreen> {
               ),
             ),
             SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Price',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+            ordersAsync.when(
+              data: (orders) {
+                final totalPrice = orders.fold<double>(0.0, (sum, order) => sum + order.totalPrice);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Price',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                      ),
+                      Text(
+                        '\$${totalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(fontSize: 16, color: Colors.brown),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '\$${products[0].price.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 16, color: Colors.brown),
-                  ),
-                ],
-              ),
+                );
+              },
+              loading: () => SizedBox.shrink(),
+              error: (_, __) => SizedBox.shrink(),
             ),
             SizedBox(height: 10),
             Padding(
@@ -327,12 +382,33 @@ class _OrderScreenState extends State<OrderScreen> {
                       color: Colors.grey,
                     ),
                   ),
-                  Text(
-                    '\$${(products[0].price + 2.00).toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
+                  ordersAsync.when(
+                    data: (orders) {
+                      final totalPrice = orders.fold<double>(0.0, (sum, order) => sum + order.totalPrice);
+                      return Text(
+                        '\$${(totalPrice + 2.00).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      );
+                    },
+                    loading: () => Text(
+                      '\$0.00',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    error: (_, __) => Text(
+                      '\$0.00',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
                     ),
                   ),
                 ],
@@ -367,12 +443,33 @@ class _OrderScreenState extends State<OrderScreen> {
                             ),
                           ),
                           SizedBox(height: 5),
-                          Text(
-                            '\$${(products[0].price + 2.00).toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
+                          ordersAsync.when(
+                            data: (orders) {
+                              final totalPrice = orders.fold<double>(0.0, (sum, order) => sum + order.totalPrice);
+                              return Text(
+                                '\$${(totalPrice + 2.00).toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[700],
+                                ),
+                              );
+                            },
+                            loading: () => Text(
+                              '\$0.00',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            error: (_, __) => Text(
+                              '\$0.00',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                              ),
                             ),
                           ),
                         ],
@@ -386,7 +483,13 @@ class _OrderScreenState extends State<OrderScreen> {
                     width: 350,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Handle order confirmation
+                        // TODO: Implement order confirmation
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Order confirmation coming soon'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.brown,

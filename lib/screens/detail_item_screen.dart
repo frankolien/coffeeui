@@ -1,28 +1,59 @@
-import 'package:coffeeui/screens/home_page_screen.dart';
-import 'package:coffeeui/screens/order_screen.dart';
-import 'package:coffeeui/widget%20/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:coffeeui/model/product.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../presentation/providers/favorite_provider.dart';
+import '../presentation/providers/order_provider.dart';
+import '../presentation/providers/review_provider.dart';
 
-class DetailItemScreen extends StatefulWidget {
+class DetailItemScreen extends ConsumerStatefulWidget {
   final Product product;
   // Declare the product variable here  
 
   const DetailItemScreen({super.key, required this.product});
 
   @override
-  State<DetailItemScreen> createState() => _DetailItemScreenState();
+  ConsumerState<DetailItemScreen> createState() => _DetailItemScreenState();
 }
 
-class _DetailItemScreenState extends State<DetailItemScreen> {
+class _DetailItemScreenState extends ConsumerState<DetailItemScreen> {
   String selectedSize = 'M'; // Declare the variable here
 
   final List<String> sizes = ['S', 'M', 'L'];
+  
+  // Check if favorite
+  bool _isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check favorite status
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(isFavoriteProvider(widget.product.id)).whenData((isFav) {
+        if (mounted) {
+          setState(() {
+            _isFavorite = isFav;
+          });
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
+    
+    // Get reviews for rating
+    final reviewsAsync = ref.watch(reviewsByCoffeeTypeProvider(widget.product.id));
+    final averageRating = reviewsAsync.when(
+      data: (reviews) => reviews.isNotEmpty
+          ? reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length
+          : 4.5,
+      loading: () => 4.5,
+      error: (_, __) => 4.5,
+    );
+    
     return Scaffold(
             backgroundColor: Colors.white,
       appBar: AppBar(
@@ -30,8 +61,16 @@ class _DetailItemScreenState extends State<DetailItemScreen> {
         backgroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.favorite_border),
-            onPressed: () {},
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : null,
+            ),
+            onPressed: () {
+              ref.read(favoriteNotifierProvider.notifier).toggleFavorite(widget.product.id);
+              setState(() {
+                _isFavorite = !_isFavorite;
+              });
+            },
           )
         ],
       ),
@@ -78,9 +117,16 @@ class _DetailItemScreenState extends State<DetailItemScreen> {
              child: Row(
               children: [
                 Icon(Icons.star, color: Colors.amber),
-                Text( '4.5', style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                Text(
+                  averageRating.toStringAsFixed(1),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                ),
                 SizedBox(width: 3),
-                Text("(230)")
+                reviewsAsync.when(
+                  data: (reviews) => Text("(${reviews.length})"),
+                  loading: () => Text("(0)"),
+                  error: (_, __) => Text("(0)"),
+                ),
               ],
              ),
            ),
@@ -173,14 +219,20 @@ class _DetailItemScreenState extends State<DetailItemScreen> {
                       width: screenWidth * 0.5, 
                       height: screenHeight * 0.06, 
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Add to cart action
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderScreen(), // Navigate to OrderScreen
+                        onPressed: () async {
+                          // Create order
+                          final orderState = ref.read(orderNotifierProvider);
+                          if (orderState.isLoading) return;
+                          
+                          // TODO: Get location ID from selected location
+                          // For now, we'll need to handle this - maybe store selected location in state
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please select a location first'),
+                              backgroundColor: Colors.orange,
                             ),
                           );
+                          // context.push('/orders');
                         },
                        child: Text('Buy Now'),
                         style: ElevatedButton.styleFrom(

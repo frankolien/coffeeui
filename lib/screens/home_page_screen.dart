@@ -1,43 +1,52 @@
 
 import 'package:coffeeui/model/product.dart';
-import 'package:coffeeui/screens/detail_item_screen.dart';
-import 'package:coffeeui/screens/order_screen.dart';
-import 'package:coffeeui/widget%20/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../presentation/providers/coffee_provider.dart';
+import '../presentation/providers/location_provider.dart';
+import '../core/utils/product_mapper.dart';
 
-class HomePageScreen extends StatefulWidget {
+class HomePageScreen extends ConsumerStatefulWidget {
   const HomePageScreen({super.key});
 
   @override
-  State<HomePageScreen> createState() => _HomePageScreenState();
+  ConsumerState<HomePageScreen> createState() => _HomePageScreenState();
 }
 
-class _HomePageScreenState extends State<HomePageScreen> {
+class _HomePageScreenState extends ConsumerState<HomePageScreen> {
   int crossAxisCount(double screenWidth) {
     return screenWidth < 600 ? 2 : 3;
   }
 
-  List<Product> products = [
-    Product(
-      id: '1',
-      name: 'Flat White',
-      description: 'Espresso',
-      price: 2.50,
-      imageUrl: 'lib/images/third_coffee.png', // Update to your image path
-    ),
-    Product(id: '2', name: 'Cappuccino', description: 'Steamed milk', price: 3.00, imageUrl: 'lib/images/4.png'),
-    Product(id: '3', name: 'Latte', description: 'Ice/hot', price: 3.50, imageUrl: 'lib/images/second_coffee.png'),
-    Product(id: '4', name: 'Caffe Mocha', description: 'Deep foam', price: 4.00, imageUrl: 'lib/images/5.png'),
-
-  ];
+  String? _selectedLocationId;
+  String? _searchQuery;
 
   @override
   Widget build(BuildContext context) {
+    // Fetch coffee types from API
+    final coffeeAsync = ref.watch(coffeeListFilteredProvider(
+      CoffeeFilters(
+        search: _searchQuery,
+        availableOnly: true,
+      ),
+    ));
+    
+    // Fetch locations
+    final locationsAsync = ref.watch(locationListActiveProvider);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         double screenHeight = constraints.maxHeight;
         double screenWidth = constraints.maxWidth;
+        
+        // Convert coffee types to products
+        final products = coffeeAsync.when(
+          data: (coffees) => coffees.map((c) => c.toProduct()).toList(),
+          loading: () => <Product>[],
+          error: (_, __) => <Product>[],
+        );
 
         return AnnotatedRegion(
           value: SystemUiOverlayStyle(
@@ -74,21 +83,37 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Location', style: TextStyle(color: Colors.grey)),
-                                  DropdownButton<String>(
-                                    value: 'Location 1',
-                                    icon: Icon(Icons.arrow_drop_down, color: Colors.white),
-                                    dropdownColor: Color(0xFF1A1A1A),
-                                    items: [
-                                      DropdownMenuItem(
-                                        value: 'Location 1',
-                                        child: Text('Lagos, Nigeria', style: TextStyle(color: Colors.white)),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'Location 2',
-                                        child: Text('Abuja, Nigeria', style: TextStyle(color: Colors.white)),
-                                      ),
-                                    ],
-                                    onChanged: (_) {},
+                                  locationsAsync.when(
+                                    data: (locations) => DropdownButton<String>(
+                                      value: _selectedLocationId ?? (locations.isNotEmpty ? locations.first.id : null),
+                                      icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+                                      dropdownColor: Color(0xFF1A1A1A),
+                                      items: locations.map((location) {
+                                        return DropdownMenuItem(
+                                          value: location.id,
+                                          child: Text(location.name, style: TextStyle(color: Colors.white)),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedLocationId = value;
+                                        });
+                                      },
+                                    ),
+                                    loading: () => DropdownButton<String>(
+                                      value: null,
+                                      icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+                                      dropdownColor: Color(0xFF1A1A1A),
+                                      items: [],
+                                      onChanged: null,
+                                    ),
+                                    error: (_, __) => DropdownButton<String>(
+                                      value: null,
+                                      icon: Icon(Icons.arrow_drop_down, color: Colors.white),
+                                      dropdownColor: Color(0xFF1A1A1A),
+                                      items: [],
+                                      onChanged: null,
+                                    ),
                                   ),
                                   SizedBox(height: 20),
                                   Row(
@@ -98,6 +123,11 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                           height: screenHeight * 0.05,
                                           decoration: BoxDecoration(color: Colors.grey[800], borderRadius: BorderRadius.circular(10)),
                                           child: TextField(
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _searchQuery = value.isEmpty ? null : value;
+                                              });
+                                            },
                                             decoration: InputDecoration(
                                               hintText: 'Search Coffee',
                                               hintStyle: TextStyle(color: Colors.grey),
@@ -184,20 +214,31 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   // Coffee Grid
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: GridView.count(
-                      crossAxisCount: crossAxisCount(screenWidth),
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 3 / 4.5,
-                      children: List.generate(products.length, (index) {
-                        final product = products[index];
+                    child: coffeeAsync.when(
+                      data: (_) => products.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Text(
+                                  'No coffee found',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                              ),
+                            )
+                          : GridView.count(
+                              crossAxisCount: crossAxisCount(screenWidth),
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 3 / 4.5,
+                              children: List.generate(products.length, (index) {
+                                final product = products[index];
                         return ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => DetailItemScreen(product: product)));
+                              context.push('/detail', extra: product);
                             },
           
                             child: Card(
@@ -250,6 +291,22 @@ class _HomePageScreenState extends State<HomePageScreen> {
                           ),
                         );
                       }),
+                            ),
+                      loading: () => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      error: (error, stack) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Text(
+                            'Error loading coffee: $error',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:coffeeui/screens/home_page_screen.dart';
 import 'package:coffeeui/widget%20/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -38,7 +39,7 @@ class OnboardingScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       height: 1.25,
                     ),
-                  ),
+                  ), 
       
                   SizedBox(height: 16),
       
@@ -59,13 +60,7 @@ class OnboardingScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                       
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomePage(),
-                          ),
-                        );
+                        context.go('/home');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(

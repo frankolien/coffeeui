@@ -18,15 +18,12 @@ import '../../domain/repositories/favorite_repository.dart';
 
 final httpClientProvider = Provider<http.Client>((ref) => http.Client());
 
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
-  return await SharedPreferences.getInstance();
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('SharedPreferences must be initialized in main.dart');
 });
 
 final localDataSourceProvider = Provider<LocalDataSource>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider).value;
-  if (prefs == null) {
-    throw Exception('SharedPreferences not initialized');
-  }
+  final prefs = ref.watch(sharedPreferencesProvider);
   return LocalDataSourceImpl(prefs);
 });
 

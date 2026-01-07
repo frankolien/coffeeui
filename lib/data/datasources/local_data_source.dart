@@ -7,6 +7,8 @@ abstract class LocalDataSource {
   Future<void> removeToken();
   Future<String?> getUserId();
   Future<void> saveUserId(String userId);
+  Future<String?> getLocationId();
+  Future<void> saveLocationId(String locationId);
   Future<void> clearAll();
 }
 
@@ -17,6 +19,7 @@ class LocalDataSourceImpl implements LocalDataSource {
 
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';
+  static const String _locationIdKey = 'location_id';
 
   @override
   Future<String?> getToken() async {
@@ -60,6 +63,24 @@ class LocalDataSourceImpl implements LocalDataSource {
       await prefs.setString(_userIdKey, userId);
     } catch (e) {
       throw CacheFailure('Failed to save user ID: $e');
+    }
+  }
+
+  @override
+  Future<String?> getLocationId() async {
+    try {
+      return prefs.getString(_locationIdKey);
+    } catch (e) {
+      throw CacheFailure('Failed to get location ID: $e');
+    }
+  }
+
+  @override
+  Future<void> saveLocationId(String locationId) async {
+    try {
+      await prefs.setString(_locationIdKey, locationId);
+    } catch (e) {
+      throw CacheFailure('Failed to save location ID: $e');
     }
   }
 

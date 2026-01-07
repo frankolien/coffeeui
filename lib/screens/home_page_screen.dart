@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../presentation/providers/coffee_provider.dart';
 import '../presentation/providers/location_provider.dart';
 import '../core/utils/product_mapper.dart';
+import '../core/di/dependency_injection.dart';
 
 class HomePageScreen extends ConsumerStatefulWidget {
   const HomePageScreen({super.key});
@@ -22,9 +23,34 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
 
   String? _selectedLocationId;
   String? _searchQuery;
+  bool _hasLoadedLocation = false;
+
+  Future<void> _loadSavedLocation() async {
+    if (_hasLoadedLocation) return;
+    final localDataSource = ref.read(localDataSourceProvider);
+    final savedLocationId = await localDataSource.getLocationId();
+    if (mounted && savedLocationId != null && _selectedLocationId == null) {
+      setState(() {
+        _selectedLocationId = savedLocationId;
+        _hasLoadedLocation = true;
+      });
+    }
+  }
+
+  Future<void> _saveLocation(String locationId) async {
+    final localDataSource = ref.read(localDataSourceProvider);
+    await localDataSource.saveLocationId(locationId);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Load saved location on first build
+    if (!_hasLoadedLocation) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadSavedLocation();
+      });
+    }
+    
     // Create filters - now with proper equality, Riverpod will cache correctly
     final filters = CoffeeFilters(
       search: _searchQuery?.isEmpty == true ? null : _searchQuery,
@@ -95,9 +121,12 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                                         );
                                       }).toList(),
                                       onChanged: (value) {
-                                        setState(() {
-                                          _selectedLocationId = value;
-                                        });
+                                        if (value != null) {
+                                          setState(() {
+                                            _selectedLocationId = value;
+                                          });
+                                          _saveLocation(value);
+                                        }
                                       },
                                     ),
                                     loading: () => DropdownButton<String>(

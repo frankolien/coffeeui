@@ -8,6 +8,7 @@ import 'package:coffeeui/screens/profile_screen.dart';
 import 'package:coffeeui/model/product.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
+import '../../presentation/screens/location/location_selection_screen.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../core/di/dependency_injection.dart';
 import 'package:coffeeui/widget /bottom_nav_bar.dart';
@@ -76,6 +77,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'register',
         builder: (context, state) {
           return const RegisterScreen();
+        },
+      ),
+      GoRoute(
+        path: '/location-selection',
+        name: 'location-selection',
+        builder: (context, state) {
+          return const LocationSelectionScreen();
         },
       ),
       ShellRoute(

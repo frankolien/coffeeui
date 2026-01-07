@@ -41,19 +41,19 @@ class CoffeeRepositoryImpl implements CoffeeRepository {
         endpoint += '?${Uri(queryParameters: queryParams).query}';
       }
 
-      print('🔍 Fetching coffee from: $endpoint');
+      print('Fetching coffee from: $endpoint');
       final response = await remoteDataSource.get(endpoint);
-      print('📦 Response received: ${response.keys}');
+      print('Response received: ${response.keys}');
       
       final List<dynamic> data = (response['data'] as List<dynamic>?) ?? 
           ((response is List) ? response as List<dynamic> : []);
-      print('📊 Data items: ${data.length}');
+      print('Data items: ${data.length}');
       
       final coffeeTypes = data
           .map((json) => CoffeeTypeModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      print('✅ Coffee types parsed: ${coffeeTypes.length}');
+      print('Coffee types parsed: ${coffeeTypes.length}');
       return Success(coffeeTypes);
     } on Failure catch (e) {
       return Error(e);

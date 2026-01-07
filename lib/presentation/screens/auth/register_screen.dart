@@ -101,7 +101,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
       if (mounted) {
         final authState = ref.read(authStateProvider);
         if (authState.isAuthenticated) {
-          context.go('/home');
+          // Navigate to location selection after successful registration
+          context.go('/location-selection');
         } else if (authState.error != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

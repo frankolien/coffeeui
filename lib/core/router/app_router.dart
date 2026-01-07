@@ -8,20 +8,54 @@ import 'package:coffeeui/screens/profile_screen.dart';
 import 'package:coffeeui/model/product.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
+import '../../presentation/providers/auth_provider.dart';
+import '../../core/di/dependency_injection.dart';
+import 'package:coffeeui/widget /bottom_nav_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+String _getInitialLocation(SharedPreferences? prefs) {
+  if (prefs != null) {
+    final token = prefs.getString('auth_token');
+    if (token != null && token.isNotEmpty) {
+      return '/home';
+    }
+  }
+  return '/onboarding';
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
-    initialLocation: '/onboarding',
+  final authState = ref.watch(authStateProvider);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final initialLocation = _getInitialLocation(prefs);
+  
+  final router = GoRouter(
+    initialLocation: initialLocation,
     redirect: (context, state) {
-      final isOnboarding = state.matchedLocation == '/onboarding';
-
-      // Allow onboarding to show first
-      if (isOnboarding) {
+      final location = state.matchedLocation;
+      final isAuthenticated = authState.isAuthenticated;
+      final isLoading = authState.isLoading;
+      
+      if (isLoading) {
         return null;
       }
-
-      // For now, allow access to all screens (you can add auth checks later)
+      
+      final isOnboarding = location == '/onboarding';
+      final isLogin = location == '/login';
+      final isRegister = location == '/register';
+      final isAuthRoute = isOnboarding || isLogin || isRegister;
+      
+      if (isAuthRoute) {
+        if (isAuthenticated) {
+          return '/home';
+        }
+        return null;
+      }
+      
+      if (!isAuthenticated && !isAuthRoute) {
+        return '/onboarding';
+      }
+      
       return null;
     },
     routes: [
@@ -44,10 +78,67 @@ final routerProvider = Provider<GoRouter>((ref) {
           return const RegisterScreen();
         },
       ),
-      GoRoute(
-        path: '/home',
-        name: 'home',
-        builder: (context, state) => const HomePageScreen(),
+      ShellRoute(
+        builder: (context, state, child) {
+          int currentIndex = 0;
+          final location = state.matchedLocation;
+          if (location == '/home') {
+            currentIndex = 0;
+          } else if (location == '/favorites') {
+            currentIndex = 1;
+          } else if (location == '/orders') {
+            currentIndex = 2;
+          } else if (location == '/notifications') {
+            currentIndex = 3;
+          }
+          
+          return Scaffold(
+            body: child,
+            bottomNavigationBar: BottomNavBar(currentIndex: currentIndex),
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/home',
+            name: 'home',
+            builder: (context, state) => const HomePageScreen(),
+          ),
+          GoRoute(
+            path: '/favorites',
+            name: 'favorites',
+            builder: (context, state) => Scaffold(
+              appBar: AppBar(
+                title: Text('Favorites'),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 0,
+              ),
+              body: Center(
+                child: Text('Favorites Screen'),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/orders',
+            name: 'orders',
+            builder: (context, state) => const OrderScreen(),
+          ),
+          GoRoute(
+            path: '/notifications',
+            name: 'notifications',
+            builder: (context, state) => Scaffold(
+              appBar: AppBar(
+                title: Text('Notifications'),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 0,
+              ),
+              body: Center(
+                child: Text('Notifications Screen'),
+              ),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/detail',
@@ -63,16 +154,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/orders',
-        name: 'orders',
-        builder: (context, state) => const OrderScreen(),
-      ),
-      GoRoute(
         path: '/profile',
         name: 'profile',
         builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );
+  
+  return router;
 });
 

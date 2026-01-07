@@ -158,10 +158,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Spacer(flex: 4),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.15),
                       
                       // Title with animation
                       FadeTransition(

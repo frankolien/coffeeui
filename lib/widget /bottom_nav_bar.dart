@@ -1,149 +1,126 @@
-import 'package:coffeeui/screens/detail_item_screen.dart';
-import 'package:coffeeui/screens/home_page_screen.dart';
-import 'package:coffeeui/screens/order_screen.dart';
-import 'package:coffeeui/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:coffeeui/model/product.dart';
+import 'package:go_router/go_router.dart';
 
-/*class BottomNavBar extends StatefulWidget {
+class BottomNavBar extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
 
   const BottomNavBar({
-    Key? key,
-    this.currentIndex = 0,
-    required this.onTap,
-  }) : super(key: key);
+    super.key,
+    required this.currentIndex,
+  });
 
-  @override
-  State<BottomNavBar> createState() => _BottomNavBarState();
-}
-
-class _BottomNavBarState extends State<BottomNavBar> {
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: widget.currentIndex,
-      //onTap: onTap,
-      onTap: (index) {
-        // Handle navigation based on the tapped index
-        if (index == 0) {
-          //Navigator.pushReplacementNamed(context, '/home');
-          Navigator.push(context, MaterialPageRoute(builder: (context) => HomePageScreen()));
-        } else if (index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailItemScreen(product: products[index]), // Navigate to OrderScreen
-            ),
-          );
-        } else if (index == 2) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen()));
-        } else if (index == 3) {
-          Navigator.pushReplacementNamed(context, 'profile');
-        }
-      },
-      selectedItemColor: Colors.brown,
-      unselectedItemColor: Colors.grey,
-      backgroundColor: Colors.white,
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.favorite),
-          label: 'Favorites',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart),
-          label: 'Cart',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
-    );
+  void _onItemTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/favorites');
+        break;
+      case 2:
+        context.go('/orders');
+        break;
+      case 3:
+        context.go('/notifications');
+        break;
+    }
   }
-}*/
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _getBodyWidget(), 
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 10,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: '',
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Container(
+          height: 60,
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                context: context,
+                index: 0,
+                icon: Icons.home,
+                isActive: currentIndex == 0,
+              ),
+              _buildNavItem(
+                context: context,
+                index: 1,
+                icon: Icons.favorite_outline,
+                isActive: currentIndex == 1,
+              ),
+              _buildNavItem(
+                context: context,
+                index: 2,
+                icon: Icons.shopping_bag_outlined,
+                isActive: currentIndex == 2,
+              ),
+              _buildNavItem(
+                context: context,
+                index: 3,
+                icon: Icons.notifications_outlined,
+                isActive: currentIndex == 3,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _getBodyWidget() {
-    switch (_selectedIndex) {
-      case 0:
-        return HomePageScreen(
-          
-        ); // Your main content
-      case 1:
-        return DetailItemScreen(product: products[0]);
-      case 2:
-        return OrderScreen();
-      case 3:
-        return ProfileScreen();
-
-      default:
-        return HomePage();
+  Widget _buildNavItem({
+    required BuildContext context,
+    required int index,
+    required IconData icon,
+    required bool isActive,
+  }) {
+    final color = isActive ? Color(0xFF8B4513) : Colors.grey;
+    
+    IconData displayIcon = icon;
+    if (index == 0 && isActive) {
+      displayIcon = Icons.home;
+    } else if (index == 0 && !isActive) {
+      displayIcon = Icons.home_outlined;
     }
+    
+    return GestureDetector(
+      onTap: () => _onItemTapped(context, index),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              displayIcon,
+              color: color,
+              size: 24,
+            ),
+            SizedBox(height: 4),
+            if (isActive)
+              Container(
+                width: 20,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              )
+            else
+              SizedBox(height: 2),
+          ],
+        ),
+      ),
+    );
   }
 }
-
-

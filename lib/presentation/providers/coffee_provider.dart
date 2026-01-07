@@ -76,5 +76,29 @@ class CoffeeFilters {
       sortOrder: sortOrder ?? this.sortOrder,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CoffeeFilters &&
+        other.search == search &&
+        other.availableOnly == availableOnly &&
+        other.minPrice == minPrice &&
+        other.maxPrice == maxPrice &&
+        other.sortBy == sortBy &&
+        other.sortOrder == sortOrder;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      search,
+      availableOnly,
+      minPrice,
+      maxPrice,
+      sortBy,
+      sortOrder,
+    );
+  }
 }
 

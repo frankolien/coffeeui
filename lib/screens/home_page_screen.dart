@@ -25,29 +25,17 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Create filters - now with proper equality, Riverpod will cache correctly
+    final filters = CoffeeFilters(
+      search: _searchQuery?.isEmpty == true ? null : _searchQuery,
+      availableOnly: true,
+    );
+    
     // Fetch coffee types from API
-    final coffeeAsync = ref.watch(coffeeListFilteredProvider(
-      CoffeeFilters(
-        search: _searchQuery,
-        availableOnly: true,
-      ),
-    ));
+    final coffeeAsync = ref.watch(coffeeListFilteredProvider(filters));
     
     // Fetch locations
     final locationsAsync = ref.watch(locationListActiveProvider);
-    
-    // Debug logging
-    coffeeAsync.when(
-      data: (coffees) => print('Coffee loaded: ${coffees.length} items'),
-      loading: () => print('Loading coffee...'),
-      error: (error, stack) => print('Coffee error: $error'),
-    );
-    
-    locationsAsync.when(
-      data: (locations) => print('Locations loaded: ${locations.length} items'),
-      loading: () => print('⏳ Loading locations...'),
-      error: (error, stack) => print('Locations error: $error'),
-    );
 
     return LayoutBuilder(
       builder: (context, constraints) {

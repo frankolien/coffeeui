@@ -33,5 +33,5 @@
 
 
 ## Backend Integration
-
+clone the swift vapor repo
 The app connects to the Vapor backend API running on `http://localhost:8080`
